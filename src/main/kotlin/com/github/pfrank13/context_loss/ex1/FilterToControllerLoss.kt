@@ -17,6 +17,7 @@ import org.springframework.web.server.WebFilterChain
 import reactor.core.publisher.Mono
 import java.util.UUID
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Executors
 
 //TODO refactor to make it seem like it's call another service because if you see the async code istelf it's obvious
 class MyReactiveService {
@@ -27,7 +28,7 @@ class MyReactiveService {
   suspend fun logDispatcher() {
     val dispatchResult: String = coroutineScope {
       val deferredIoResult: Deferred<String> = async(Dispatchers.IO) {
-        LOG.info("Fetching deferredIoResult")
+        LOG.info("Fetching deferredIoResult") //Will lose context here
         "IO Bound Foo"
       }
       val awaittedDeferredIoResult = deferredIoResult.await() //Actually non blocking waiting for the result to come back to "join" this coroutine
@@ -42,7 +43,7 @@ class MyReactiveService {
       val deferredIoResult: Deferred<String> =
         withContext(MDCContext()) {
           async(Dispatchers.IO) {
-            LOG.info("Fetching deferredIoResult")
+            LOG.info("Fetching deferredIoResult") //Will lose context here
             "IO Bound Foo"
           }
         }
@@ -54,10 +55,10 @@ class MyReactiveService {
   }
 
   suspend fun executorLogDispatch(): String {
-    val completableFuture: CompletableFuture<String> = CompletableFuture.supplyAsync{
-      LOG.info("Supplying async")
+    val completableFuture: CompletableFuture<String> = CompletableFuture.supplyAsync({
+      LOG.info("Supplying async") //Will lose context here
       "Supplied Async"
-    }
+    }, Executors.newSingleThreadExecutor()) //Notice you can supply it an Executor, other it's use the commonForkJoinPool which is the same issue
     val completableFutureResult = completableFuture.await()
     LOG.info("CompletableFutureResult is {}", completableFutureResult)
 
