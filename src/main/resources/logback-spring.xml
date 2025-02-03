@@ -1,0 +1,13 @@
+<configuration>
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <!-- Note: This includes mdc fields (via %X{field}) which may be deprecated if we switch to structured arguments -->
+            <pattern>%d{HH:mm:ss.SSS} | thread_name: %-30.30thread | logger_name: %40logger{40} | level: %-5p | message: %m | mdc.XTraceId: %X{XTraceId}%n
+            </pattern>
+            <charset>utf8</charset>
+        </encoder>
+    </appender>
+    <root level="INFO">
+        <appender-ref ref="console"/>
+    </root>
+</configuration>
